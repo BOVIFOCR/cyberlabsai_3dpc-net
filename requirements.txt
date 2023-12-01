@@ -10,7 +10,7 @@ tqdm
 prettytable
 open3d-python
 pandas==1.1.5
-opencv-python
+opencv-python==4.5.4.60
 Tensorboard
 Pillow==8.2.0
 
