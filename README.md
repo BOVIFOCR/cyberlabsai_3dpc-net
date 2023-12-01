@@ -4,13 +4,17 @@
 - `git clone https://github.com/BOVIFOCR/cyberlabsai_3dpc-net.git`
 - `cd cyberlabsai_3dpc-net` 
 
-#### 2. Create conda env and install python libs:
+#### 2. Create conda env and set env variables:
 - `ENV_NAME=cyberlabsai_3dpc-net`
 - `conda create -n $ENV_NAME python=3.6.9`
 - `conda activate $ENV_NAME`
 - `conda env config vars set CUDA_HOME="/usr/local/cuda-10.1"; conda deactivate; conda activate $ENV_NAME`
 - `conda env config vars set LD_LIBRARY_PATH="$CUDA_HOME/lib64"; conda deactivate; conda activate $ENV_NAME`
 - `conda env config vars set PATH="$CUDA_HOME:$CUDA_HOME/bin:$LD_LIBRARY_PATH:$PATH"; conda deactivate; conda activate $ENV_NAME`
+
+#### 2. Install python dependencies:
+- `pip3 install "torch==1.7.0+cu101" "torchvision==0.8.1+cu101" -f https://download.pytorch.org/whl/torch_stable.html`
+- `pip3 install pytorch3d -f https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py36_cu101_pyt170/download.html`
 - `pip3 install -r requirements.txt`
 
 </br></br>
