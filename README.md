@@ -1,3 +1,20 @@
+## INFERENCE WITH PRE-TRAINED MODELS (BOVIFOCR)
+
+#### 1. Clone this repo:
+- `git clone https://github.com/BOVIFOCR/cyberlabsai_3dpc-net.git`
+- `cd cyberlabsai_3dpc-net` 
+
+#### 2. Create conda env and install python libs:
+- `ENV_NAME=cyberlabsai_3dpc-net`
+- `conda create -n $ENV_NAME python=3.6.9`
+- `conda activate $ENV_NAME`
+- `conda env config vars set CUDA_HOME="/usr/local/cuda-10.1"; conda deactivate; conda activate $ENV_NAME`
+- `conda env config vars set LD_LIBRARY_PATH="$CUDA_HOME/lib64"; conda deactivate; conda activate $ENV_NAME`
+- `conda env config vars set PATH="$CUDA_HOME:$CUDA_HOME/bin:$LD_LIBRARY_PATH:$PATH"; conda deactivate; conda activate $ENV_NAME`
+- `pip3 install -r requirements.txt`
+
+</br></br>
+
 # 3DPC-Net: 3D Point Cloud Network for Face Anti-spoofing
 This is a non official implementation of the paper 3DPC-Net: 3D Point Cloud Network for Face Anti-spoofing <br>
 Paper Authors: Li; Xuan; Wan, Jun; Jin, Yi; Liu, Ajian; Guo, Guodong; Li, Stan Z. <br>
