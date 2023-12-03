@@ -1,4 +1,4 @@
-## INFERENCE WITH PRE-TRAINED MODELS (BOVIFOCR)
+## CONFIG TRAINING ENVIRONMENT (BOVIFOCR)
 
 #### 1. Clone this repo:
 - `git clone https://github.com/BOVIFOCR/cyberlabsai_3dpc-net.git`
