@@ -14,6 +14,8 @@ from utils.meters import AvgMeter
 from utils.eval import predict, calc_accuracy
 from utils.utils_pointcloud import write_obj
 from pytorch3d.loss import chamfer_distance
+import numpy as np
+import cv2
 
 
 
@@ -116,7 +118,6 @@ class FASTrainer(BaseTrainer):
             
             loss, _ = chamfer_distance(point_map, net_point_map)
 
-
             loss.backward()
             self.optimizer.step()
             #torch.cuda.synchronize()
@@ -134,7 +135,7 @@ class FASTrainer(BaseTrainer):
             # Update metrics
             self.train_loss_metric.update(loss.item())
             self.train_acc_metric.update(accuracy)
-            
+
             pbar.set_description(f"Epoch {epoch}/Train - Loss: {self.train_loss_metric.avg:.4f}, "\
                                  f"Acc: {self.train_acc_metric.avg:.4f}")
             
@@ -154,7 +155,7 @@ class FASTrainer(BaseTrainer):
         self.network.eval()
         self.val_loss_metric.reset(epoch)
         self.val_acc_metric.reset(epoch)
-        
+
         pbar = tqdm(self.valloader, total=len(self.valloader), dynamic_ncols=True)
 
         # Bernardo
@@ -253,7 +254,6 @@ class FASTrainer(BaseTrainer):
             pred_pc = np.transpose(pred_pc, (1, 0))
             path_pred_pc = os.path.join(path_dir_batch, f'{sample_name}_pred_pointcloud.obj')
             write_obj(path_pred_pc, pred_pc)
-
 
 
 

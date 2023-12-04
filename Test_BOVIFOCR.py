@@ -36,7 +36,7 @@ def testing_data_RAW(cfg):
     trainset = FASDataset_RAW_OULU_NPU_frames_HRN(root_dir=cfg['dataset']['root'],
                                                   protocol_id=cfg['dataset']['protocol_id'],
                                                   frames_path=cfg['dataset']['frames_path'],
-                                                  images_file=cfg['dataset']['test_images'],
+                                                  images_file=cfg['dataset']['train_images'],
                                                   transform=train_transform,
                                                   smoothing=cfg['train']['smoothing'])
 
