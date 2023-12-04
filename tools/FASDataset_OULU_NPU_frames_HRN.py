@@ -325,7 +325,7 @@ class FASDataset_OULU_NPU_frames_HRN(Dataset):
         
         imgPath = self.img_list[filename][0]                #[file_index]
         PointCloudPath = self.point_cloud_list[filename][0] #[file_index]
-        label = self.labels[filename][0]                   #[file_index]
+        label = self.labels[filename][0]                    #[file_index]
 
         img = Image.open(imgPath) # read image
 

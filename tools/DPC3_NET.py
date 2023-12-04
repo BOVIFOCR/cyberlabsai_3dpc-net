@@ -15,7 +15,8 @@ import random
 class DPC3_NET(nn.Module):
     def __init__(self):
         super(DPC3_NET,self).__init__()
-        resnet18 = models.resnet18(pretrained=True)
+        # resnet18 = models.resnet18(pretrained=True)     # original (torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.)
+        resnet18 = models.resnet18()                      # Bernardo
         self.backbone = nn.Sequential(resnet18.conv1,
                                       resnet18.bn1,
                                       resnet18.relu,

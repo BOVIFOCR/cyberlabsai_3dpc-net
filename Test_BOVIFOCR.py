@@ -35,7 +35,7 @@ def testing_data_RAW(cfg):
     trainset = FASDataset_RAW_OULU_NPU_frames_HRN(root_dir=cfg['dataset']['root'],
                                                   protocol_id=cfg['dataset']['protocol_id'],
                                                   frames_path=cfg['dataset']['frames_path'],
-                                                  images_file=cfg['dataset']['test_images'],
+                                                  images_file=cfg['dataset']['train_images'],
                                                   transform=train_transform,
                                                   smoothing=cfg['train']['smoothing'])
 
@@ -157,6 +157,7 @@ def main():
     parser.add_argument("--load_model", type=str, default="experiments/exp_1/weights/DPC3-NET_oulu-npu_frames_3d_hrn_40.pth", help="Path where to load model to continue training")
     parser.add_argument("--exp_folder", type=str, default="experiments/exp_1", help="Experiment folder to where load files")
     parser.add_argument("--csv_path", type=str, default="Protocol1_results.csv", help="Path to where save csv results")
+    parser.add_argument("--save_samples", action="store_true", help="Path to where save csv results")
     args = parser.parse_args()
     #---------------------------------------------------
 
@@ -198,7 +199,7 @@ def main():
                         testloader=testloader, csv_path=args.csv_path,
                         exp_folder=args.exp_folder, model_path=args.load_model)
     
-    tester.test()
+    tester.test(args)
 
     
 if __name__=='__main__':
