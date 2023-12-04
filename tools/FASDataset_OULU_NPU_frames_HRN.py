@@ -4,6 +4,7 @@ import os
 import torch
 from torchvision import transforms
 from utils.utils import read_cfg
+from utils.utils_pointcloud import write_obj
 from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
@@ -215,11 +216,13 @@ class FASDataset_OULU_NPU_frames_HRN(Dataset):
         max_d = max([lx - sx, ly - sy, lz - sz])
         pm = np.array([[(lx+sx)/2], [(ly+sy)/2], [(lz+sz)/2]])
         
-        return (points - pm)/(2*max_d) + 0.5
+        # return (points - pm)/(2*max_d) + 0.5    # original
+        return (points - pm)/(2*max_d)            # Bernardo
     
     def normalize_cloud(self, points):
         # Formula got from 3DPC-Net paper
-        points_normalized = (points - self.pm)/(2*self.max_d) + 0.5
+        # points_normalized = (points - self.pm)/(2*self.max_d) + 0.5   # original
+        points_normalized = (points - self.pm)/(2*self.max_d)           # Bernardo
         return points_normalized
 
     def rot_pointcloud(self,pointcloud,image, filename, crop_info):  # Random rotation of a PointCloud in Z axis
@@ -346,6 +349,13 @@ class FASDataset_OULU_NPU_frames_HRN(Dataset):
         # print('cloud_map_normalized_sampled.shape:', cloud_map_normalized_sampled.shape)
         # sys.exit(0)
         cloud_map_normalized_sampled = self.normalize_cloud2(cloud_map_normalized_sampled)
+
+        # Bernardo
+        if label == False:  # spoof
+            cloud_map_normalized_sampled[2, :] = 0.   # flat face
+        # if index < 200:
+        #     path_true_pc = os.path.join('/home/bjgbiesseck', f'index={index}_label={label}_cloud_map_normalized_sampled.obj')
+        #     write_obj(path_true_pc, np.transpose(cloud_map_normalized_sampled, (1, 0)))
 
         if self.transform:
             img = self.transform(img)

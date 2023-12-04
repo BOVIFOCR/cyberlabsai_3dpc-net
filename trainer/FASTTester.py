@@ -177,6 +177,6 @@ class FASTTester(BaseTrainer):
             path_pred_pc = os.path.join(path_dir_batch, f'{sample_name}_pred_pointcloud.obj')
             write_obj(path_pred_pc, pred_pc)
             
-        sys.exit(0)
+        # sys.exit(0)
 
 
