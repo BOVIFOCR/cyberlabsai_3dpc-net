@@ -168,6 +168,7 @@ def main():
     parser.add_argument("--logs_path", type=str, default="experiments", help="Path where to save logs")
     parser.add_argument("--exp_name", type=str, default="exp_1", help="Name of experiment folder to save logs")
     parser.add_argument("--cfg", type=str, default="config/DPC3_NET_config.yaml", help="Path to config(.yaml) file")
+    parser.add_argument("--save_samples", action="store_true", help="Path to where save csv results")
 
     args = parser.parse_args()
     #---------------------------------------------------
@@ -232,9 +233,9 @@ def main():
                         writer=writer,
                         logs_path=logs_full_path,
                         model_path=args.load_model)
-    
+
     print("Starting training...")
-    trainer.train()
+    trainer.train(args)
     print("Finish Training")
     writer.close()
     
