@@ -1,5 +1,5 @@
 import csv
-import os
+import os, sys
 import pdb
 from random import randint
 import time
@@ -10,7 +10,10 @@ import torchvision
 from trainer.base import BaseTrainer
 from utils.meters import AvgMeter
 from utils.eval import predict, calc_accuracy
+from utils.utils_pointcloud import write_obj
 from pytorch3d.loss import chamfer_distance
+import numpy as np
+import cv2
 
 
 
@@ -76,14 +79,20 @@ class FASTrainer(BaseTrainer):
 
         torch.save(state, saved_name)
     
-    def train_one_epoch(self, epoch):
+    def train_one_epoch(self, epoch, args):
 
         self.network.train()
         self.train_loss_metric.reset(epoch)
         self.train_acc_metric.reset(epoch)
 
         pbar = tqdm(self.trainloader, total=len(self.trainloader), dynamic_ncols=True)
-        
+
+        # Bernardo
+        if args.save_samples:
+            dir_samples = f'train_samples/epoch={epoch}'
+            path_dir_samples = os.path.join(self.logs_path, dir_samples)
+            os.makedirs(path_dir_samples, exist_ok=True)
+
         for i, (img, point_map, label, _) in enumerate(pbar):
             # if i >= 100:
             #     break
@@ -107,7 +116,6 @@ class FASTrainer(BaseTrainer):
             
             loss, _ = chamfer_distance(point_map, net_point_map)
 
-
             loss.backward()
             self.optimizer.step()
             #torch.cuda.synchronize()
@@ -125,22 +133,35 @@ class FASTrainer(BaseTrainer):
             # Update metrics
             self.train_loss_metric.update(loss.item())
             self.train_acc_metric.update(accuracy)
-            
+
             pbar.set_description(f"Epoch {epoch}/Train - Loss: {self.train_loss_metric.avg:.4f}, "\
                                  f"Acc: {self.train_acc_metric.avg:.4f}")
+
+            # Bernardo
+            if args.save_samples and i==0:
+                print(f'Saving samples at \'{path_dir_samples}\'...')
+                self.save_samples(imgs=img, gt_pcs=point_map, gt_labels=label,
+                                  pred_pcs=net_point_map, pred_labels=preds, pred_scores=score,
+                                  batch_idx=i, path_to_save=path_dir_samples)
         
         epoch_loss = self.train_loss_metric.avg
         epoch_acc = self.train_acc_metric.avg
         
         return epoch_loss, epoch_acc
     
-    def validate_one_epoch(self, epoch):
+    def validate_one_epoch(self, epoch, args):
         self.network.eval()
         self.val_loss_metric.reset(epoch)
         self.val_acc_metric.reset(epoch)
-        
+
         pbar = tqdm(self.valloader, total=len(self.valloader), dynamic_ncols=True)
-        
+
+        # Bernardo
+        if args.save_samples:
+            dir_samples = f'val_samples/epoch={epoch}'
+            path_dir_samples = os.path.join(self.logs_path, dir_samples)
+            os.makedirs(path_dir_samples, exist_ok=True)
+
         with torch.no_grad():
             for i, (img, point_map, label, _) in enumerate(pbar):
                 # if i >= 100:
@@ -169,17 +190,24 @@ class FASTrainer(BaseTrainer):
                 pbar.set_description(f"Epoch {epoch}/Val - Loss: {self.val_loss_metric.avg:.4f}, "\
                         f"Acc: {self.val_acc_metric.avg:.4f}")
 
+                # Bernardo
+                if args.save_samples and i==0:
+                    print(f'Saving samples at \'{path_dir_samples}\'...')
+                    self.save_samples(imgs=img, gt_pcs=point_map, gt_labels=label,
+                                      pred_pcs=net_point_map, pred_labels=preds, pred_scores=score,
+                                      batch_idx=i, path_to_save=path_dir_samples)
+
         return self.val_loss_metric.avg, self.val_acc_metric.avg
-        
-    def train(self):
+
+    def train(self, args):
         
         min_loss = float('inf')
         
         for epoch in range(self.last_epoch, self.cfg['train']['num_epochs']):
 
-            train_epoch_loss, train_epoch_acc = self.train_one_epoch(epoch)
+            train_epoch_loss, train_epoch_acc = self.train_one_epoch(epoch, args)
 
-            val_epoch_loss, val_epoch_acc = self.validate_one_epoch(epoch)
+            val_epoch_loss, val_epoch_acc = self.validate_one_epoch(epoch, args)
             
             print(f'\nEpoch: {epoch}, Train loss: {train_epoch_loss:.4f}, Val loss: {val_epoch_loss:.4f}, '\
                 f'Train Acc: {train_epoch_acc:.4f}, Val Acc: {val_epoch_acc:.4f} - Lr: {self.lr_scheduler.get_last_lr()[0]}\n')
@@ -196,6 +224,33 @@ class FASTrainer(BaseTrainer):
             if val_epoch_loss < min_loss:
                 min_loss = val_epoch_loss
                 self.save_model(epoch)
+
+    def save_samples(self, imgs, gt_pcs, gt_labels,
+                     pred_pcs, pred_labels, pred_scores,
+                     batch_idx, path_to_save):
+        dir_batch = f'batch_{batch_idx}'
+        path_dir_batch = os.path.join(path_to_save, dir_batch)
+        os.makedirs(path_dir_batch, exist_ok=True)
+
+        for i in range(imgs.shape[0]):
+            img, gt_pc, gt_label, \
+            pred_pc, pred_label, pred_score = imgs[i].cpu().numpy(), gt_pcs[i].detach().cpu().numpy(), gt_labels[i].detach().cpu().numpy(), \
+                                              pred_pcs[i].detach().cpu().numpy(), pred_labels[i].detach().cpu().numpy(), pred_scores[i].detach().cpu().numpy()
+            sample_name = f'sample={i}_gtlabel={gt_label}_predlabel={pred_label}_score=' + '{:.3f}'.format(pred_score)
+
+            img_rgb = np.transpose(img, (1, 2, 0))  # from (3,224,224) to (224,224,3)
+            img_rgb = (((img_rgb*0.5)+0.5)*255).astype(np.uint8)
+            img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
+            path_img = os.path.join(path_dir_batch, f'{sample_name}_img.png')
+            cv2.imwrite(path_img, img_bgr)
+
+            gt_pc = np.transpose(gt_pc, (1, 0))
+            path_true_pc = os.path.join(path_dir_batch, f'{sample_name}_true_pointcloud.obj')
+            write_obj(path_true_pc, gt_pc)
+
+            pred_pc = np.transpose(pred_pc, (1, 0))
+            path_pred_pc = os.path.join(path_dir_batch, f'{sample_name}_pred_pointcloud.obj')
+            write_obj(path_pred_pc, pred_pc)
                 
 
 
