@@ -113,14 +113,6 @@ class FASTTester(BaseTrainer):
             # print("==========  [DEBUG]  ==========")
             preds, score = predict(net_point_map)
 
-            # Bernardo
-            if args.save_samples and i==0:
-                print(f'Saving samples at \'{path_dir_samples}\'...')
-                self.save_samples(imgs=img, gt_pcs=point_map, gt_labels=label,
-                                  pred_pcs=net_point_map, pred_labels=preds, pred_scores=score,
-                                  batch_idx=i, path_to_save=path_dir_samples)
-
-            
             # print('-'*50)
             # print(score[cond])
             # preds, score = predict(net_point_map)
