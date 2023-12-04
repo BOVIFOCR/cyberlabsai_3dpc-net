@@ -216,8 +216,8 @@ class FASDataset_OULU_NPU_frames_HRN(Dataset):
         max_d = max([lx - sx, ly - sy, lz - sz])
         pm = np.array([[(lx+sx)/2], [(ly+sy)/2], [(lz+sz)/2]])
 
-        # return (points - pm)/(2*max_d) + 0.5    # original
-        return (points - pm)/(2*max_d) + 0.5, pm  # Bernardo
+        # return (points - pm)/(2*max_d) + 0.5                  # original
+        return (points - pm)/(2*max_d) + 0.5, pm/(2*max_d)+0.5  # Bernardo
     
     def normalize_cloud(self, points):
         # Formula got from 3DPC-Net paper
@@ -349,10 +349,9 @@ class FASDataset_OULU_NPU_frames_HRN(Dataset):
         # sys.exit(0)
         cloud_map_normalized_sampled, pm = self.normalize_cloud2(cloud_map_normalized_sampled)
 
-        # # Bernardo
-        # if label == False:  # spoof
-        #     # cloud_map_normalized_sampled[2, :] = 0.   # flat face
-        #     cloud_map_normalized_sampled[2, :] = pm[2]   # flat face
+        # Bernardo
+        if label == False:  # spoof
+            cloud_map_normalized_sampled[2, :] = pm[2]   # flat face
         # if index < 200:
         #     path_true_pc = os.path.join('/home/bjgbiesseck', f'index={index}_label={label}_cloud_map_normalized_sampled.obj')
         #     write_obj(path_true_pc, np.transpose(cloud_map_normalized_sampled, (1, 0)))
