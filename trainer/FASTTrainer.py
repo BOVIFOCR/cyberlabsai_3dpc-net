@@ -156,6 +156,12 @@ class FASTrainer(BaseTrainer):
         self.val_acc_metric.reset(epoch)
         
         pbar = tqdm(self.valloader, total=len(self.valloader), dynamic_ncols=True)
+
+        # Bernardo
+        if args.save_samples:
+            dir_samples = f'val_samples/epoch={epoch}'
+            path_dir_samples = os.path.join(self.logs_path, dir_samples)
+            os.makedirs(path_dir_samples, exist_ok=True)
         
         with torch.no_grad():
             for i, (img, point_map, label, _) in enumerate(pbar):
@@ -184,6 +190,13 @@ class FASTrainer(BaseTrainer):
                 
                 pbar.set_description(f"Epoch {epoch}/Val - Loss: {self.val_loss_metric.avg:.4f}, "\
                         f"Acc: {self.val_acc_metric.avg:.4f}")
+
+                # Bernardo
+                if args.save_samples and i==0:
+                    print(f'Saving samples at \'{path_dir_samples}\'...')
+                    self.save_samples(imgs=img, gt_pcs=point_map, gt_labels=label,
+                                      pred_pcs=net_point_map, pred_labels=preds, pred_scores=score,
+                                      batch_idx=i, path_to_save=path_dir_samples)
 
         return self.val_loss_metric.avg, self.val_acc_metric.avg
         
