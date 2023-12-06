@@ -1,4 +1,4 @@
-import os
+import os, sys
 import torch
 from torchvision import transforms
 from PIL import ImageDraw
@@ -47,3 +47,30 @@ def calc_accuracy(preds, targets):
     with torch.no_grad():
         equals = torch.mean(preds.eq(targets).type(torch.FloatTensor))
         return equals.item()
+
+
+def calc_tp_tn_fp_fn(preds, targets):
+    with torch.no_grad():
+        # equals = torch.mean(preds.eq(targets).type(torch.FloatTensor))
+        # return equals.item()
+
+        # predict_issame = np.less(dist, threshold)
+        tp = torch.sum(torch.logical_and(preds, targets))
+        fp = torch.sum(torch.logical_and(preds, torch.logical_not(targets)))
+        tn = torch.sum(torch.logical_and(torch.logical_not(preds), torch.logical_not(targets)))
+        fn = torch.sum(torch.logical_and(torch.logical_not(preds), targets))
+        # print('tp:', tp, '    fp:', fp, '    tn:', tn, '    fn:', fn)
+        # sys.exit(0)
+        return tp, fp, tn, fn
+
+
+# https://drive.google.com/file/d/1krZTtIHS5fEOTDzCOaN69QtQt2nK2D_9/view
+# https://chalearnlap.cvc.uab.cat/challenge/33/track/33/metrics/
+# https://github.com/ZitongYu/CDCN/blob/master/CVPR2020_paper_codes/utils.py
+def calc_fas_metrics(tp, fp, tn, fn):
+    with torch.no_grad():
+        metrics = {}
+        metrics['apcer'] = fp / (tn + fp)
+        metrics['bpcer'] = fn / (tp + fn)
+        metrics['acer'] = (metrics['apcer'] + metrics['bpcer']) / 2.0
+        return metrics

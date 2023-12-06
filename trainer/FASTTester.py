@@ -9,7 +9,7 @@ from tqdm import tqdm
 import torchvision
 from trainer.base import BaseTrainer
 from utils.meters import AvgMeter
-from utils.eval import predict, calc_accuracy
+from utils.eval import predict, calc_accuracy, calc_tp_tn_fp_fn, calc_fas_metrics
 from utils.utils_pointcloud import write_obj
 from pytorch3d.loss import chamfer_distance
 import csv
@@ -92,6 +92,8 @@ class FASTTester(BaseTrainer):
             dir_samples = 'test_samples'
             path_dir_samples = os.path.join(args.exp_folder, dir_samples)
             os.makedirs(path_dir_samples, exist_ok=True)
+
+        tp_total, fp_total, tn_total, fn_total = 0., 0., 0., 0.
         
         for i, (img, point_map, label, filename) in enumerate(pbar):
             # if i >= 100:
@@ -121,6 +123,12 @@ class FASTTester(BaseTrainer):
             # print(label)
             accuracy = calc_accuracy(preds, label)
 
+            tp_batch, fp_batch, tn_batch, fn_batch = calc_tp_tn_fp_fn(preds, label)
+            tp_total += tp_batch
+            fp_total += fp_batch
+            tn_total += tn_batch
+            fn_total += fn_batch
+
             # Update metrics
             self.test_acc_metric.update(accuracy)
             
@@ -147,6 +155,11 @@ class FASTTester(BaseTrainer):
         scores = np.concatenate(scores, axis=0)
         
         self.save_csv(filenames, labels, scores)
+
+        metrics_total = calc_fas_metrics(tp_total, fp_total, tn_total, fn_total)
+        for key in metrics_total.keys():
+            print(f'{key}: {metrics_total[key]}')
+        print()
 
 
     # Bernardo
